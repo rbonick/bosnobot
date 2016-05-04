@@ -10,6 +10,7 @@ from bosnobot.pool import ChannelPool
 from bosnobot.channel import Channel
 from bosnobot.message import MessageDispatcher, Message
 
+
 class IrcProtocol(irc.IRCClient):
     channel_pool_class = ChannelPool
     
@@ -72,6 +73,7 @@ class IrcProtocol(irc.IRCClient):
             message = Message(user, channel, msg, **kwargs)
             self.factory.message_dispatcher.dispatch(message)
 
+
 class IrcBot(object):
     channels = []
     
@@ -85,6 +87,7 @@ class IrcBot(object):
     
     def shutdown(self):
         pass
+
 
 class IrcBotFactory(protocol.ClientFactory):
     protocol = IrcProtocol
