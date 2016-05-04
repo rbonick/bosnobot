@@ -16,16 +16,11 @@ class Options(usage.Options):
     optParameters = [["settings", "", None]]
 
 
-class IrcBotService(internet.TCPClient):
-    def __init__(self, *args, **kwargs):
-        factory = IrcBotFactory(settings.BOT, settings.BOT_CHANNELS)
-        internet.TCPClient.__init__(self,
-            settings.BOT_IRC_SERVER, settings.BOT_IRC_PORT, factory)
-
-
 def main_loop():
-    factory = IrcBotFactory(settings.BOT, settings.BOT_CHANNELS)
+    factory = IrcBotFactory(settings.BOT_NICKNAMES[0], settings.BOT_CHANNELS)
+    factory2 = IrcBotFactory(settings.BOT_NICKNAMES[1], settings.BOT_CHANNELS)
     reactor.connectTCP(settings.BOT_IRC_SERVER, settings.BOT_IRC_PORT, factory)
+    reactor.connectTCP(settings.BOT_IRC_SERVER, settings.BOT_IRC_PORT, factory2)
     reactor.run()
 
 

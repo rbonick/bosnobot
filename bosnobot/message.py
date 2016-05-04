@@ -7,6 +7,7 @@ from twisted.python import log
 
 from bosnobot.conf import settings
 
+
 class MessageDispatcherThread(threading.Thread):
     """
     The default message dispatch thread that pulls from the dispatch queue and
@@ -44,6 +45,7 @@ class MessageDispatcherThread(threading.Thread):
                 handler.process_message(message)
         log.msg("Stopping message dispatch thread.", logLevel=logging.DEBUG)
 
+
 class MessageDispatcher(object):
     """
     Handles the dispatching of message to the message handlers
@@ -67,15 +69,17 @@ class MessageDispatcher(object):
         """
         self.queue.put("stop")
 
+
 class Message(object):
     """
     Represents a message sent over IRC.
     """
-    def __init__(self, user, channel, message, **kwargs):
+    def __init__(self, user, channel, message, botNick, **kwargs):
         self.user = user
         self.nickname = user.split("!", 1)[0]
         self.channel = channel
         self.message = message
+        self.botNick = botNick
         # @@@ hack for now
         self.action = kwargs.pop("action", False)
     

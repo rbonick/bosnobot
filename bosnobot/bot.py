@@ -1,6 +1,3 @@
-
-import logging
-
 from twisted.python import log
 from twisted.words.protocols import irc
 from twisted.internet import protocol, reactor
@@ -12,8 +9,6 @@ from bosnobot.message import MessageDispatcher, Message
 
 
 class IrcProtocol(irc.IRCClient):
-    channel_pool_class = ChannelPool
-    
     def lineReceived(self, line):
         # print line
         irc.IRCClient.lineReceived(self, line)
@@ -23,8 +18,9 @@ class IrcProtocol(irc.IRCClient):
         irc.IRCClient.sendLine(self, line)
         
     def connectionMade(self):
-        self.channel_pool = self.channel_pool_class(self)
-        self.nickname = settings.BOT_NICKNAME
+        self.channel_pool = ChannelPool(self)
+        self.nickname = self.botnick
+        log.msg("Loaded bot {}".format(self.nickname))
         self.password = settings.BOT_PASSWORD
         irc.IRCClient.connectionMade(self)
         self._initialize_bot()
@@ -34,20 +30,7 @@ class IrcProtocol(irc.IRCClient):
         self.bot.shutdown()
     
     def _initialize_bot(self):
-        if self.factory.bot_path is None:
-            self.bot = IrcBot(self)
-            log.msg("Loaded default bot")
-        else:
-            bits = self.factory.bot_path.split(".")
-            module_name = ".".join(bits[:-1])
-            try:
-                mod = __import__(module_name, {}, {}, [""])
-            except ImportError, e:
-                log.msg("Unable to import %s: %s" % (self.factory.bot_path, e))
-            else:
-                bot_class = getattr(mod, bits[-1])
-                self.bot = bot_class(self)
-                log.msg("Loaded %s" % self.factory.bot_path)
+        self.bot = IrcBot(self)
     
     def signedOn(self):
         # once signed on to the irc server join each channel.
@@ -70,7 +53,7 @@ class IrcProtocol(irc.IRCClient):
     def dispatch_message(self, user, channel, msg, **kwargs):
         if self.channel_pool.joined_all:
             channel = self.channel_pool.get(channel)
-            message = Message(user, channel, msg, **kwargs)
+            message = Message(user, channel, msg, self.nickname, **kwargs)
             self.factory.message_dispatcher.dispatch(message)
 
 
@@ -93,8 +76,8 @@ class IrcBotFactory(protocol.ClientFactory):
     protocol = IrcProtocol
     message_dispatcher_class = MessageDispatcher
     
-    def __init__(self, bot_path, channels):
-        self.bot_path = bot_path
+    def __init__(self, botnick, channels):
+        self.botnick = botnick
         self.channels = channels
     
     def clientConnectionFailed(self, connector, reason):
@@ -106,3 +89,23 @@ class IrcBotFactory(protocol.ClientFactory):
     
     def stopFactory(self):
         self.message_dispatcher.stop()
+
+    def buildProtocol(self, addr):
+        """
+        Create an instance of a subclass of Protocol.
+
+        The returned instance will handle input on an incoming server
+        connection, and an attribute "factory" pointing to the creating
+        factory.
+
+        Alternatively, C{None} may be returned to immediately close the
+        new connection.
+
+        Override this method to alter how Protocol instances get created.
+
+        @param addr: an object implementing L{twisted.internet.interfaces.IAddress}
+        """
+        p = self.protocol()
+        p.factory = self
+        p.botnick = self.botnick
+        return p

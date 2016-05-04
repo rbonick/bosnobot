@@ -1,6 +1,6 @@
 
 BOT = None
-BOT_NICKNAME = "testbotct2016"
+BOT_NICKNAMES = ["testbotct2016", 'testbot2']
 BOT_PASSWORD = ""
 BOT_CHANNELS = ['#testct2016']
 BOT_IRC_SERVER = "irc.freenode.org"

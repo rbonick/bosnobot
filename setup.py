@@ -37,4 +37,5 @@ setup(
     author_email = "brosner@gmail.com",
     url = "http://github.com/brosner/bosnobot/",
     packages = packages,
+    requires=['twisted']
 )

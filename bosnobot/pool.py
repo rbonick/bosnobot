@@ -26,6 +26,9 @@ class ChannelPool(object):
         Get a channel from the pool failing silently.
         """
         try:
+            # With multiple protocols running, the channels themselves can get broken protocols. This resets it to the
+            # channel pool's connection, which is always correct.
+            self[channel.lower()].protocol = self.protocol
             return self[channel.lower()]
         except KeyError:
             return None
